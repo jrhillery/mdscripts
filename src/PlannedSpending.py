@@ -1,4 +1,6 @@
 # Look at all spending reminders to see what's planned
+from datetime import date, timedelta
+
 from com.infinitekind.moneydance.model import AbstractTxn, Account, AccountBook, ParentTxn, Reminder, ReminderSet
 from typing import List, Optional
 
@@ -29,6 +31,22 @@ class PlanedReminder(object):
         return self.spendTotal > 0
     # end isSpending()
 
+    def getAnnualTotal(self):
+        if not self.annualTotal:
+            self.annualTotal = 0
+            curDate = date.today()
+            endDate = date(curDate.year + 1, curDate.month, curDate.day)
+
+            while curDate < endDate:
+                if self.reminder.occursOnDate(curDate):
+                    self.annualTotal += self.spendTotal
+
+                curDate += timedelta(days=1)
+            # end while
+
+        return self.annualTotal
+    # end getAnnualTotal()
+
     def __str__(self):
         return "{} spend {}".format(
             self.reminder.getDescription(), self.spendTotal)
@@ -53,6 +71,10 @@ if "moneydance" in globals():
 
         if planned.isSpending():
             plannedSpending.append(planned)
-            print planned
     # end for
     print "Number of spending reminders:", len(plannedSpending)
+    plannedSpending.sort(key=lambda spend: spend.getAnnualTotal(), reverse=True)
+
+    for planned in plannedSpending:
+        print planned, "annual", planned.getAnnualTotal()
+    # end for
