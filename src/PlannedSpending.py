@@ -1,5 +1,6 @@
 # Look at all spending reminders to see what's planned
 from datetime import date, timedelta
+from decimal import Decimal
 
 from com.infinitekind.moneydance.model import AbstractTxn, Account, AccountBook, ParentTxn, Reminder, ReminderSet
 from typing import List, Optional
@@ -12,8 +13,8 @@ class PlanedReminder(object):
     def __init__(self, reminder):
         # type: (Reminder) -> None
         self.reminder = reminder  # type: Reminder
-        self.annualTotal = None  # type: Optional[int]
-        self.spendTotal = 0  # type: int
+        self.annualTotal = None  # type: Optional[Decimal]
+        self.spendTotal = Decimal(0)  # type: Decimal
         txn = reminder.getTransaction()  # type: ParentTxn
         numSplits = txn.getOtherTxnCount()  # type: int
 
@@ -22,7 +23,8 @@ class PlanedReminder(object):
             otherAcc = other.getAccount()  # type: Account
 
             if otherAcc.getAccountType() == Account.AccountType.EXPENSE:
-                self.spendTotal += other.getValue()
+                decimalPlaces = otherAcc.getCurrencyType().getDecimalPlaces()
+                self.spendTotal += Decimal(other.getValue()).scaleb(-decimalPlaces)
         # end for
     # end __init__(Reminder)
 
@@ -32,8 +34,9 @@ class PlanedReminder(object):
     # end isSpending()
 
     def getAnnualTotal(self):
+        # type: () -> Decimal
         if not self.annualTotal:
-            self.annualTotal = 0
+            self.annualTotal = Decimal(0)
             curDate = date.today()
             endDate = date(curDate.year + 1, curDate.month, curDate.day)
 
