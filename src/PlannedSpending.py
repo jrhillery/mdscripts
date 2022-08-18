@@ -8,7 +8,8 @@ from typing import List, Optional
 from Configure import Configure
 
 
-class PlanedReminder(object):
+class PlannedReminder(object):
+    ONE_DAY = timedelta(days=1)
 
     def __init__(self, reminder):
         # type: (Reminder) -> None
@@ -44,7 +45,7 @@ class PlanedReminder(object):
                 if self.reminder.occursOnDate(curDate):
                     self.annualTotal += self.spendTotal
 
-                curDate += timedelta(days=1)
+                curDate += PlannedReminder.ONE_DAY
             # end while
 
         return self.annualTotal
@@ -55,7 +56,7 @@ class PlanedReminder(object):
             self.reminder.getDescription(), self.spendTotal)
     # end __str__()
 
-# end class PlanedReminder
+# end class PlannedReminder
 
 
 Configure.logToSysErr()
@@ -67,17 +68,17 @@ if "moneydance" in globals():
     reminderSet = accountBook.getReminders()  # type: ReminderSet
     reminders = reminderSet.getAllReminders()  # type: List[Reminder]
     reminders.sort(key=lambda reminder: reminder.getDescription())
-    plannedSpending = []  # type: List[PlanedReminder]
+    plannedSpending = []  # type: List[PlannedReminder]
 
     for remind in reminders:
-        planned = PlanedReminder(remind)
+        planned = PlannedReminder(remind)
 
         if planned.isSpending():
             plannedSpending.append(planned)
     # end for
-    print "Number of spending reminders:", len(plannedSpending)
+    print "Number of spending reminders:", len(plannedSpending), "- annual spending for each:"
     plannedSpending.sort(key=lambda spend: spend.getAnnualTotal(), reverse=True)
 
     for planned in plannedSpending:
-        print planned, "annual", planned.getAnnualTotal()
+        print planned.getAnnualTotal(), planned.reminder.getDescription()
     # end for
