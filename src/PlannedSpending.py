@@ -80,5 +80,6 @@ if "moneydance" in globals():
     plannedSpending.sort(key=lambda spend: spend.getAnnualTotal(), reverse=True)
 
     for planned in plannedSpending:
-        print planned.getAnnualTotal(), planned.reminder.getDescription()
+        print "{:>8} {}".format(
+            planned.getAnnualTotal(), planned.reminder.getDescription())
     # end for
