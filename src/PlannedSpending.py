@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from com.infinitekind.moneydance.model import AbstractTxn, Account, AccountBook, ParentTxn, Reminder, ReminderSet
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from Configure import Configure
 
@@ -14,7 +14,6 @@ class PlannedReminder(object):
     def __init__(self, reminder):
         # type: (Reminder) -> None
         self.reminder = reminder  # type: Reminder
-        self.annualTotal = None  # type: Optional[Decimal]
         self.spendTotal = Decimal(0)  # type: Decimal
         txn = reminder.getTransaction()  # type: ParentTxn
         numSplits = txn.getOtherTxnCount()  # type: int
@@ -36,20 +35,32 @@ class PlannedReminder(object):
 
     def getAnnualTotal(self):
         # type: () -> Decimal
-        if not self.annualTotal:
-            self.annualTotal = Decimal(0)
-            curDate = date.today()
-            endDate = date(curDate.year + 1, curDate.month, curDate.day)
+        annualTotal = Decimal(0)
+        curDate = date.today()
+        endDate = date(curDate.year + 1, curDate.month, curDate.day)
 
-            while curDate < endDate:
-                if self.reminder.occursOnDate(curDate):
-                    self.annualTotal += self.spendTotal
+        while curDate < endDate:
+            if self.reminder.occursOnDate(curDate):
+                annualTotal += self.spendTotal
 
-                curDate += PlannedReminder.ONE_DAY
-            # end while
+            curDate += PlannedReminder.ONE_DAY
+        # end while
 
-        return self.annualTotal
+        return annualTotal
     # end getAnnualTotal()
+
+    def getDescriptionCore(self):
+        # type: () -> str
+        """Get the core portion of our reminder's description."""
+        description = self.reminder.getDescription()
+        descLen = len(description)
+
+        # remove the trailing 2 characters when ends in <blank><char>
+        if descLen > 2 and description[descLen - 2] == " ":
+            description = description[:descLen - 2]
+
+        return description
+    # end getDescriptionCore()
 
     def __str__(self):
         return "{} spend {}".format(
@@ -57,6 +68,30 @@ class PlannedReminder(object):
     # end __str__()
 
 # end class PlannedReminder
+
+
+class ReminderGroup(object):
+    """Class to hold a group of planned reminders that have the same core description"""
+
+    def __init__(self, description):
+        # type: (str) -> None
+        self.descCore = description  # type: str
+        self.reminders = []  # type: List[PlannedReminder]
+        self.annualTotal = None  # type: Optional[Decimal]
+    # end __init__(str)
+
+    def getAnnualTotal(self):
+        # type: () -> Decimal
+        if not self.annualTotal:
+            self.annualTotal = Decimal(0)
+
+            for reminder in self.reminders:
+                self.annualTotal += reminder.getAnnualTotal()
+
+        return self.annualTotal
+    # end getAnnualTotal()
+
+# end class ReminderGroup
 
 
 Configure.logToSysErr()
@@ -67,19 +102,25 @@ if "moneydance" in globals():
     root = accountBook.getRootAccount()  # type: Account
     reminderSet = accountBook.getReminders()  # type: ReminderSet
     reminders = reminderSet.getAllReminders()  # type: List[Reminder]
-    reminders.sort(key=lambda reminder: reminder.getDescription())
-    plannedSpending = []  # type: List[PlannedReminder]
+    reminderGroups = {}  # type: Dict[str, ReminderGroup]
 
     for remind in reminders:
         planned = PlannedReminder(remind)
 
         if planned.isSpending():
-            plannedSpending.append(planned)
+            desc = planned.getDescriptionCore()
+
+            if desc not in reminderGroups:
+                reminderGroups[desc] = ReminderGroup(desc)
+
+            reminderGroups[desc].reminders.append(planned)
     # end for
-    print "Number of spending reminders:", len(plannedSpending), "- annual spending for each:"
+    plannedSpending = list(reminderGroups.values())
+    print "Number of spending reminders: {}; annual spending for each:".format(
+        len(plannedSpending))
     plannedSpending.sort(key=lambda spend: spend.getAnnualTotal(), reverse=True)
 
-    for planned in plannedSpending:
+    for reminderGroup in plannedSpending:
         print "{:>8} {}".format(
-            planned.getAnnualTotal(), planned.reminder.getDescription())
+            reminderGroup.getAnnualTotal(), reminderGroup.descCore)
     # end for
