@@ -76,21 +76,13 @@ class ReminderGroup(object):
     def __init__(self, description):
         # type: (str) -> None
         self.descCore = description  # type: str
-        self.reminders = []  # type: List[PlannedReminder]
         self.annualTotal = Decimal(0)
     # end __init__(str)
 
     def addReminder(self, reminder):
         # type: (PlannedReminder) -> None
-        self.reminders.append(reminder)
         self.annualTotal += reminder.getAnnualTotal()
     # end addReminder(PlannedReminder)
-
-    def getAnnualTotal(self):
-        # type: () -> Decimal
-
-        return self.annualTotal
-    # end getAnnualTotal()
 
 # end class ReminderGroup
 
@@ -140,9 +132,9 @@ if "moneydance" in globals():
     plannedSpending = reminderAcc.getPlannedSpending()
     print "Number of spending reminders: {}; annual spending for each:".format(
         len(plannedSpending))
-    plannedSpending.sort(key=lambda spend: spend.getAnnualTotal(), reverse=True)
+    plannedSpending.sort(key=lambda spend: spend.annualTotal, reverse=True)
 
     for reminderGroup in plannedSpending:
         print "{:>8} {}".format(
-            reminderGroup.getAnnualTotal(), reminderGroup.descCore)
+            reminderGroup.annualTotal, reminderGroup.descCore)
     # end for
