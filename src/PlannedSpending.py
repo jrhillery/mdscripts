@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from com.infinitekind.moneydance.model import AbstractTxn, Account, AccountBook, ParentTxn, Reminder, ReminderSet
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from Configure import Configure
 
@@ -77,16 +77,17 @@ class ReminderGroup(object):
         # type: (str) -> None
         self.descCore = description  # type: str
         self.reminders = []  # type: List[PlannedReminder]
-        self.annualTotal = None  # type: Optional[Decimal]
+        self.annualTotal = Decimal(0)
     # end __init__(str)
+
+    def addReminder(self, reminder):
+        # type: (PlannedReminder) -> None
+        self.reminders.append(reminder)
+        self.annualTotal += reminder.getAnnualTotal()
+    # end addReminder(PlannedReminder)
 
     def getAnnualTotal(self):
         # type: () -> Decimal
-        if not self.annualTotal:
-            self.annualTotal = Decimal(0)
-
-            for reminder in self.reminders:
-                self.annualTotal += reminder.getAnnualTotal()
 
         return self.annualTotal
     # end getAnnualTotal()
@@ -122,7 +123,7 @@ class ReminderAccessor(object):
 
             if planned.isSpending():
                 desc = planned.getDescriptionCore()
-                self.getReminderGroupForDesc(desc).reminders.append(planned)
+                self.getReminderGroupForDesc(desc).addReminder(planned)
         # end for
 
         return list(self.reminderGroups.values())
