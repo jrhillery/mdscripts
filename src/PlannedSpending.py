@@ -94,28 +94,49 @@ class ReminderGroup(object):
 # end class ReminderGroup
 
 
+class ReminderAccessor(object):
+    """Class to retrieve and aggregate planned reminders"""
+
+    def __init__(self, accountBook):
+        # type: (AccountBook) -> None
+        self.accountBook = accountBook
+        self.reminderGroups = {}  # type: Dict[str, ReminderGroup]
+    # end __init__(AccountBook)
+
+    def getReminderGroupForDesc(self, description):
+        # type: (str) -> ReminderGroup
+
+        if description not in self.reminderGroups:
+            self.reminderGroups[description] = ReminderGroup(description)
+
+        return self.reminderGroups[description]
+    # end getReminderGroupForDesc(str)
+
+    def getPlannedSpending(self):
+        # type: () -> List[ReminderGroup]
+        reminderSet = self.accountBook.getReminders()  # type: ReminderSet
+        reminders = reminderSet.getAllReminders()  # type: List[Reminder]
+
+        for remind in reminders:
+            planned = PlannedReminder(remind)
+
+            if planned.isSpending():
+                desc = planned.getDescriptionCore()
+                self.getReminderGroupForDesc(desc).reminders.append(planned)
+        # end for
+
+        return list(self.reminderGroups.values())
+    # end getPlannedSpending()
+
+# end class ReminderAccessor
+
+
 Configure.logToSysErr()
 
 if "moneydance" in globals():
     global moneydance
-    accountBook = moneydance.getCurrentAccountBook()  # type: AccountBook
-    root = accountBook.getRootAccount()  # type: Account
-    reminderSet = accountBook.getReminders()  # type: ReminderSet
-    reminders = reminderSet.getAllReminders()  # type: List[Reminder]
-    reminderGroups = {}  # type: Dict[str, ReminderGroup]
-
-    for remind in reminders:
-        planned = PlannedReminder(remind)
-
-        if planned.isSpending():
-            desc = planned.getDescriptionCore()
-
-            if desc not in reminderGroups:
-                reminderGroups[desc] = ReminderGroup(desc)
-
-            reminderGroups[desc].reminders.append(planned)
-    # end for
-    plannedSpending = list(reminderGroups.values())
+    reminderAcc = ReminderAccessor(moneydance.getCurrentAccountBook())
+    plannedSpending = reminderAcc.getPlannedSpending()
     print "Number of spending reminders: {}; annual spending for each:".format(
         len(plannedSpending))
     plannedSpending.sort(key=lambda spend: spend.getAnnualTotal(), reverse=True)
