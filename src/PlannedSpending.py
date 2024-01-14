@@ -8,32 +8,6 @@ from typing import Dict, List
 from Configure import Configure
 
 
-class PlannedReminder(object):
-    def __init__(self, reminder):
-        # type: (Reminder) -> None
-        self.reminder = reminder  # type: Reminder
-        self.spendTotal = Decimal(0)  # type: Decimal
-        txn = reminder.getTransaction()  # type: ParentTxn
-        numSplits = txn.getOtherTxnCount()  # type: int
-
-        for i in range(numSplits):
-            other = txn.getOtherTxn(i)  # type: AbstractTxn
-            otherAcc = other.getAccount()  # type: Account
-
-            if otherAcc.getAccountType() == Account.AccountType.EXPENSE:
-                decimalPlaces = otherAcc.getCurrencyType().getDecimalPlaces()
-                self.spendTotal += Decimal(other.getValue()).scaleb(-decimalPlaces)
-        # end for
-    # end __init__(Reminder)
-
-    def __str__(self):
-        return "{} spend {}".format(
-            self.reminder.getDescription(), self.spendTotal)
-    # end __str__()
-
-# end class PlannedReminder
-
-
 class ReminderGroup(object):
     """Class to hold a group of planned reminders that have the same core description"""
 
@@ -87,8 +61,18 @@ class ReminderAccessor(object):
         reminders = reminderSet.getAllReminders()  # type: List[Reminder]
 
         for remind in reminders:
-            planned = PlannedReminder(remind)
-            spendAmt = planned.spendTotal
+            spendAmt = Decimal(0)
+            txn = remind.getTransaction()  # type: ParentTxn
+            numSplits = txn.getOtherTxnCount()  # type: int
+
+            for i in range(numSplits):
+                other = txn.getOtherTxn(i)  # type: AbstractTxn
+                otherAcc = other.getAccount()  # type: Account
+
+                if otherAcc.getAccountType() == Account.AccountType.EXPENSE:
+                    decimalPlaces = otherAcc.getCurrencyType().getDecimalPlaces()
+                    spendAmt += Decimal(other.getValue()).scaleb(-decimalPlaces)
+            # end for
 
             if spendAmt > 0:
                 # get the core portion of the reminder's description
