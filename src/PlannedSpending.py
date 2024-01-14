@@ -9,8 +9,6 @@ from Configure import Configure
 
 
 class PlannedReminder(object):
-    ONE_DAY = timedelta(days=1)
-
     def __init__(self, reminder):
         # type: (Reminder) -> None
         self.reminder = reminder  # type: Reminder
@@ -32,22 +30,6 @@ class PlannedReminder(object):
         # type: () -> bool
         return self.spendTotal > 0
     # end isSpending()
-
-    def getAnnualTotal(self):
-        # type: () -> Decimal
-        annualTotal = Decimal(0)
-        curDate = date.today()
-        endDate = date(curDate.year + 1, curDate.month, curDate.day)
-
-        while curDate < endDate:
-            if self.reminder.occursOnDate(curDate):
-                annualTotal += self.spendTotal
-
-            curDate += PlannedReminder.ONE_DAY
-        # end while
-
-        return annualTotal
-    # end getAnnualTotal()
 
     def getDescriptionCore(self):
         # type: () -> str
@@ -73,16 +55,28 @@ class PlannedReminder(object):
 class ReminderGroup(object):
     """Class to hold a group of planned reminders that have the same core description"""
 
+    ONE_DAY = timedelta(days=1)
+
     def __init__(self, description):
         # type: (str) -> None
         self.descCore = description  # type: str
         self.annualTotal = Decimal(0)
     # end __init__(str)
 
-    def addReminder(self, reminder):
-        # type: (PlannedReminder) -> None
-        self.annualTotal += reminder.getAnnualTotal()
-    # end addReminder(PlannedReminder)
+    def addReminder(self, reminder, spendAmt):
+        # type: (Reminder, Decimal) -> None
+        annualTotal = Decimal(0)
+        curDate = date.today()
+        endDate = date(curDate.year + 1, curDate.month, curDate.day)
+
+        while curDate < endDate:
+            if reminder.occursOnDate(curDate):
+                annualTotal += spendAmt
+
+            curDate += self.ONE_DAY
+        # end while
+        self.annualTotal += annualTotal
+    # end addReminder(Reminder, Decimal)
 
 # end class ReminderGroup
 
@@ -115,7 +109,7 @@ class ReminderAccessor(object):
 
             if planned.isSpending():
                 desc = planned.getDescriptionCore()
-                self.getReminderGroupForDesc(desc).addReminder(planned)
+                self.getReminderGroupForDesc(desc).addReminder(remind, planned.spendTotal)
         # end for
 
         return list(self.reminderGroups.values())
