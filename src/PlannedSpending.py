@@ -67,11 +67,7 @@ class ReminderAccessor(object):
 
             for i in range(numSplits):
                 other = txn.getOtherTxn(i)  # type: AbstractTxn
-                otherAcc = other.getAccount()  # type: Account
-
-                if otherAcc.getAccountType() == Account.AccountType.EXPENSE:
-                    decimalPlaces = otherAcc.getCurrencyType().getDecimalPlaces()
-                    spendAmt += Decimal(other.getValue()).scaleb(-decimalPlaces)
+                spendAmt += self.getSpendValue(other)
             # end for
 
             if spendAmt > 0:
@@ -88,6 +84,19 @@ class ReminderAccessor(object):
 
         return list(self.reminderGroups.values())
     # end getPlannedSpending()
+
+    @staticmethod
+    def getSpendValue(other):
+        # type: (AbstractTxn) -> Decimal
+        otherAcc = other.getAccount()  # type: Account
+
+        if otherAcc.getAccountType() == Account.AccountType.EXPENSE:
+            decimalPlaces = otherAcc.getCurrencyType().getDecimalPlaces()
+
+            return Decimal(other.getValue()).scaleb(-decimalPlaces)
+        else:
+            return Decimal(0)
+    # end getSpendValue(AbstractTxn)
 
 # end class ReminderAccessor
 
