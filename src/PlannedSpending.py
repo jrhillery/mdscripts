@@ -26,11 +26,6 @@ class PlannedReminder(object):
         # end for
     # end __init__(Reminder)
 
-    def isSpending(self):
-        # type: () -> bool
-        return self.spendTotal > 0
-    # end isSpending()
-
     def __str__(self):
         return "{} spend {}".format(
             self.reminder.getDescription(), self.spendTotal)
@@ -93,8 +88,9 @@ class ReminderAccessor(object):
 
         for remind in reminders:
             planned = PlannedReminder(remind)
+            spendAmt = planned.spendTotal
 
-            if planned.isSpending():
+            if spendAmt > 0:
                 # get the core portion of the reminder's description
                 desc = remind.getDescription()
                 descLen = len(desc)
@@ -103,7 +99,7 @@ class ReminderAccessor(object):
                 if descLen > 2 and desc[descLen - 2] == " ":
                     desc = desc[:descLen - 2]
 
-                self.getReminderGroupForDesc(desc).addReminder(remind, planned.spendTotal)
+                self.getReminderGroupForDesc(desc).addReminder(remind, spendAmt)
         # end for
 
         return list(self.reminderGroups.values())
