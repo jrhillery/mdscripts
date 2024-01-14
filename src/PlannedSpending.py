@@ -31,19 +31,6 @@ class PlannedReminder(object):
         return self.spendTotal > 0
     # end isSpending()
 
-    def getDescriptionCore(self):
-        # type: () -> str
-        """Get the core portion of our reminder's description."""
-        description = self.reminder.getDescription()
-        descLen = len(description)
-
-        # remove the trailing 2 characters when ends in <blank><char>
-        if descLen > 2 and description[descLen - 2] == " ":
-            description = description[:descLen - 2]
-
-        return description
-    # end getDescriptionCore()
-
     def __str__(self):
         return "{} spend {}".format(
             self.reminder.getDescription(), self.spendTotal)
@@ -108,7 +95,14 @@ class ReminderAccessor(object):
             planned = PlannedReminder(remind)
 
             if planned.isSpending():
-                desc = planned.getDescriptionCore()
+                # get the core portion of the reminder's description
+                desc = remind.getDescription()
+                descLen = len(desc)
+
+                # remove the trailing 2 characters when ends in <blank><char>
+                if descLen > 2 and desc[descLen - 2] == " ":
+                    desc = desc[:descLen - 2]
+
                 self.getReminderGroupForDesc(desc).addReminder(remind, planned.spendTotal)
         # end for
 
