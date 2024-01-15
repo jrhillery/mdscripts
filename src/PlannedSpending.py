@@ -61,20 +61,26 @@ class ReminderAccessor(object):
         reminders = reminderSet.getAllReminders()  # type: List[Reminder]
 
         for remind in reminders:
-            spendAmt = Decimal(0)
             txn = remind.getTransaction()  # type: ParentTxn
             numSplits = txn.getOtherTxnCount()  # type: int
 
-            for i in range(numSplits):
-                other = txn.getOtherTxn(i)  # type: AbstractTxn
-                spendAmt += self.getSpendValue(other)
-            # end for
+            if numSplits == 1:
+                other = txn.getOtherTxn(0)  # type: AbstractTxn
+                spendAmt = self.getSpendValue(other)
 
-            if spendAmt > 0:
-                desc = self.getDescriptionCore(remind)
+                if spendAmt > 0:
+                    desc = self.getDescriptionCore(remind)
+                    self.getReminderGroupForDesc(desc).addReminder(remind, spendAmt)
+            else:
+                for i in range(numSplits):
+                    other = txn.getOtherTxn(i)  # type: AbstractTxn
+                    spendAmt = self.getSpendValue(other)
 
-                self.getReminderGroupForDesc(desc).addReminder(remind, spendAmt)
-        # end for
+                    if spendAmt > 0:
+                        desc = self.getDescriptionCore(remind) + ": " + other.getDescription()
+                        self.getReminderGroupForDesc(desc).addReminder(remind, spendAmt)
+                # end for splits
+        # end for reminders
 
         return list(self.reminderGroups.values())
     # end getPlannedSpending()
