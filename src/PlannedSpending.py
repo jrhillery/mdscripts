@@ -71,13 +71,7 @@ class ReminderAccessor(object):
             # end for
 
             if spendAmt > 0:
-                # get the core portion of the reminder's description
-                desc = remind.getDescription()
-                descLen = len(desc)
-
-                # remove the trailing 2 characters when ends in <blank><char>
-                if descLen > 2 and desc[descLen - 2] == " ":
-                    desc = desc[:descLen - 2]
+                desc = self.getDescriptionCore(remind)
 
                 self.getReminderGroupForDesc(desc).addReminder(remind, spendAmt)
         # end for
@@ -97,6 +91,20 @@ class ReminderAccessor(object):
         else:
             return Decimal(0)
     # end getSpendValue(AbstractTxn)
+
+    @staticmethod
+    def getDescriptionCore(remind):
+        # type: (Reminder) -> str
+        """Get the core portion of our reminder's description."""
+        description = remind.getDescription()
+        descLen = len(description)
+
+        # remove the trailing 2 characters when ends in <blank><char>
+        if descLen > 2 and description[descLen - 2] == " ":
+            description = description[:descLen - 2]
+
+        return description
+    # end getDescriptionCore(Reminder)
 
 # end class ReminderAccessor
 
