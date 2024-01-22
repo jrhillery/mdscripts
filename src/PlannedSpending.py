@@ -66,10 +66,10 @@ class ReminderAccessor(object):
 
             if numSplits == 1:
                 other = txn.getOtherTxn(0)  # type: AbstractTxn
-                spendAmt = self.getSpendValue(other)
+                spendAmt = self.getSpendValue(other)  # type: Decimal
 
                 if spendAmt > 0:
-                    desc = self.getDescriptionCore(remind)
+                    desc = self.getDescriptionCore(remind)  # type: str
                     self.getReminderGroupForDesc(desc).addReminder(remind, spendAmt)
             else:
                 for i in range(numSplits):
