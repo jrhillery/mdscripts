@@ -64,22 +64,19 @@ class ReminderAccessor(object):
             txn = remind.getTransaction()  # type: ParentTxn
             numSplits = txn.getOtherTxnCount()  # type: int
 
-            if numSplits == 1:
-                other = txn.getOtherTxn(0)  # type: AbstractTxn
+            for i in range(numSplits):
+                other = txn.getOtherTxn(i)  # type: AbstractTxn
                 spendAmt = self.getSpendValue(other)  # type: Decimal
 
                 if spendAmt > 0:
-                    desc = self.getDescriptionCore(remind)  # type: str
-                    self.getReminderGroupForDesc(desc).addReminder(remind, spendAmt)
-            else:
-                for i in range(numSplits):
-                    other = txn.getOtherTxn(i)  # type: AbstractTxn
-                    spendAmt = self.getSpendValue(other)
+                    desc = [self.getDescriptionCore(remind)]  # type: List[str]
 
-                    if spendAmt > 0:
-                        desc = self.getDescriptionCore(remind) + ": " + other.getDescription()
-                        self.getReminderGroupForDesc(desc).addReminder(remind, spendAmt)
-                # end for splits
+                    if numSplits > 1:
+                        desc.append(": ")
+                        desc.append(other.getDescription())
+
+                    self.getReminderGroupForDesc("".join(desc)).addReminder(remind, spendAmt)
+            # end for splits
         # end for reminders
 
         return list(self.reminderGroups.values())
@@ -121,7 +118,7 @@ if "moneydance" in globals():
     global moneydance
     reminderAcc = ReminderAccessor(moneydance.getCurrentAccountBook())
     plannedSpending = reminderAcc.getPlannedSpending()
-    print "Number of spending reminders: {}; annual spending for each:".format(
+    print "{} spending reminders; annual spending for each:".format(
         len(plannedSpending))
     plannedSpending.sort(key=lambda spend: spend.annualTotal, reverse=True)
 
