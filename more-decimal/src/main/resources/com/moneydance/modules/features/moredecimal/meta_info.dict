@@ -1,0 +1,9 @@
+{
+  "vendor" = "John Hillery"
+  "module_build" = "1"
+  "minbuild" = "1000"
+  "vendor.url" = "http://your.url.here/"
+  "module_name" = "More Decimal"
+  "module_desc" = "<html><body><title>More Decimal</title><p>Module used to change the number of decimal places in a Moneydance security.</p></body></html>"
+  "desc" = "Module used to change the number of decimal places in a Moneydance security."
+}
