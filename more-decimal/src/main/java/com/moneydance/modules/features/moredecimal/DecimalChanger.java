@@ -9,10 +9,7 @@ import static java.time.format.FormatStyle.MEDIUM;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import com.infinitekind.moneydance.model.AbstractTxn;
 import com.infinitekind.moneydance.model.Account;
@@ -76,10 +73,10 @@ public class DecimalChanger {
 			List<Account> invAccounts = MdUtil.getAccounts(this.book, INVESTMENT);
 
 			for (Account investAcnt : invAccounts) {
-				Account securityAcnt = MdUtil.getSubAccountByName(investAcnt, securityName);
+				Optional<Account> securityAcnt = MdUtil.getSubAccountByName(investAcnt, securityName);
 
-				if (securityAcnt != null) {
-					allAccountsGood &= saveAccntToChanges(securityAcnt, investAcnt);
+				if (securityAcnt.isPresent()) {
+					allAccountsGood &= saveAccntToChanges(securityAcnt.get(), investAcnt);
 				}
 			} // end for
 
