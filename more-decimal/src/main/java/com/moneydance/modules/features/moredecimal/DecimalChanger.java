@@ -69,16 +69,9 @@ public class DecimalChanger {
 			// No changes needed. %s already has %d decimal places.
 			writeFormatted("MDC02", securityName, newDecimalPlaces);
 		} else {
-			boolean allAccountsGood = true;
-			List<Account> invAccounts = MdUtil.getAccounts(this.book, INVESTMENT);
-
-			for (Account investAcnt : invAccounts) {
-				Optional<Account> securityAcnt = MdUtil.getSubAccountByName(investAcnt, securityName);
-
-				if (securityAcnt.isPresent()) {
-					allAccountsGood &= saveAccntToChanges(securityAcnt.get(), investAcnt);
-				}
-			} // end for
+			boolean allAccountsGood = MdUtil.getAccounts(this.book, INVESTMENT)
+				.allMatch(invAccount -> MdUtil.getSubAccountByName(invAccount, securityName).stream()
+				.allMatch(securityAccount -> saveAccntToChanges(securityAccount, invAccount)));
 
 			if (!allAccountsGood) {
 				forgetChanges();
