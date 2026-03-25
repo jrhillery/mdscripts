@@ -1,0 +1,45 @@
+Directory:--->~\gitreps\mdutil\MdProjects\..\..\mdscripts\md-scripts\src
+--->Configure.py
+from logging.config import dictConfig
+from java.lang import System
+--->PlannedSpending.py
+from datetime import date, timedelta
+from decimal import Decimal
+from com.infinitekind.moneydance.model import AbstractTxn, Account, AccountBook, ParentTxn, Reminder, ReminderSet
+from typing import Dict, List
+from Configure import Configure
+Generating:Configure.Configure
+Class not found:Configure.Configure
+Generating:com.infinitekind.moneydance.model.AbstractTxn
+class com.infinitekind.moneydance.model.AbstractTxn
+create package directory:com.infinitekind.moneydance.model
+Generating:com.infinitekind.moneydance.model.Account
+class com.infinitekind.moneydance.model.Account
+create package directory:com.infinitekind.moneydance.model
+Generating:com.infinitekind.moneydance.model.AccountBook
+class com.infinitekind.moneydance.model.AccountBook
+create package directory:com.infinitekind.moneydance.model
+Generating:com.infinitekind.moneydance.model.ParentTxn
+class com.infinitekind.moneydance.model.ParentTxn
+create package directory:com.infinitekind.moneydance.model
+Generating:com.infinitekind.moneydance.model.Reminder
+class com.infinitekind.moneydance.model.Reminder
+create package directory:com.infinitekind.moneydance.model
+Generating:com.infinitekind.moneydance.model.ReminderSet
+class com.infinitekind.moneydance.model.ReminderSet
+create package directory:com.infinitekind.moneydance.model
+Generating:datetime.date
+Class not found:datetime.date
+Generating:datetime.timedelta
+Class not found:datetime.timedelta
+Generating:decimal.Decimal
+Class not found:decimal.Decimal
+Generating:java.lang.System
+class java.lang.System
+create package directory:java.lang
+Generating:logging.config.dictConfig
+Class not found:logging.config.dictConfig
+Generating:typing.Dict
+Class not found:typing.Dict
+Generating:typing.List
+Class not found:typing.List
